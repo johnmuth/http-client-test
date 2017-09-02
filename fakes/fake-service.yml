@@ -1,0 +1,12 @@
+---
+- name: fake service endpoint
+  cdcdisabled: false
+  request:
+    uri: /service
+    method: POST
+    headers:
+      content-type: application/json
+    body: '{"foo":"abc","bar":"def"}'
+  response:
+    code: 200
+    body: '{"qux":"flubber"}'

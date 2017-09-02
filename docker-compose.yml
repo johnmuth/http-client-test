@@ -1,0 +1,21 @@
+version: '2'
+services:
+  web:
+    build:
+      context: .
+    environment:
+      - SERVICE_BASE_URL=http://fake-service:9090/service
+      - ENV_NAME=local
+      - LOG_LEVEL=debug
+    links:
+      - fake-service
+    ports:
+      - "8000:8000"
+
+  fake-service:
+    image: quii/mockingjay-server:1.10.4
+    volumes:
+      - ./fakes:/fakes
+    command: -config=/fakes/fake-service.yml
+    ports:
+     - "9090:9090"
