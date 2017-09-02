@@ -12,6 +12,8 @@ import (
 
 func main() {
 
+	log.SetFormatter(&log.JSONFormatter{TimestampFormat:time.RFC3339Nano})
+
 	config, err := LoadAppConfig()
 	if err != nil {
 		log.Error("Error loading config", err.Error())

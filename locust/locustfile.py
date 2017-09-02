@@ -4,7 +4,7 @@ def api(l):
     l.client.get("/api")
 
 class UserBehavior(TaskSet):
-    tasks = {api: 5}
+    tasks = {api: 10}
 
 class WebsiteUser(HttpLocust):
     task_set = UserBehavior
