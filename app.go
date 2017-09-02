@@ -7,6 +7,7 @@ import (
 	"time"
 	log "github.com/sirupsen/logrus"
 	"github.com/kelseyhightower/envconfig"
+	"net"
 )
 
 func main() {
@@ -19,12 +20,20 @@ func main() {
 	log.Info("Listening on", config.Port)
 
 	httpClient := &http.Client{
-			// TODO: make these options configurable
-			Transport: &http.Transport{
-				MaxIdleConnsPerHost: 100,
-			},
-			Timeout: time.Millisecond * 1500,
-		}
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost: config.HTTPClientMaxIdleConnsPerHost,
+			DialContext: (&net.Dialer{
+				Timeout:   time.Duration(config.HTTPClientDialerTimeoutMS) * time.Millisecond,
+				KeepAlive: time.Duration(config.HTTPClientDialerKeepAliveMS) * time.Millisecond,
+			}).DialContext,
+			MaxIdleConns:          config.HTTPClientMaxIdleConns,
+			IdleConnTimeout:       time.Duration(config.HTTPClientIdleConnTimeoutMS) * time.Millisecond,
+			TLSHandshakeTimeout:   time.Duration(config.HTTPClientTLSHandshakeTimeoutMS) * time.Millisecond,
+			ExpectContinueTimeout: time.Duration(config.HTTPClientExpectContinueTimeoutMS) * time.Millisecond,
+
+		},
+		Timeout: time.Duration(config.HTTPClientTimeoutMS) * time.Millisecond,
+	}
 
 	service := &Service{config.ServiceBaseURL, httpClient}
 	handler := &Handler{*service}

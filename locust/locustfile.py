@@ -6,9 +6,6 @@ def api(l):
 class UserBehavior(TaskSet):
     tasks = {api: 5}
 
-    def on_start(self):
-        login(self)
-
 class WebsiteUser(HttpLocust):
     task_set = UserBehavior
     min_wait = 5
