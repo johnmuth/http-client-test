@@ -5,7 +5,7 @@ import (
 )
 
 type ServiceResponse struct {
-	Qux  string `json:"qux"`
+	Qux       string `json:"qux"`
 	RequestID string `json:"requestid"`
 }
 

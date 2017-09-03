@@ -7,13 +7,13 @@ import (
 	"net/http"
 )
 
-// Handler handles requests
-type Handler struct {
+// HTTPClientTestHandler handles requests
+type HTTPClientTestHandler struct {
 	Service Service
 }
 
 // ServeHTTP serves HTTP
-func (handler Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (handler HTTPClientTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	u1 := uuid.NewV4()
 	serviceRequest := &ServiceRequest{RequestID: u1.String()}
 	log.WithField("requestid", serviceRequest.RequestID).Info("About to do service.Call")

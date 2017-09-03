@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func NewRouter(handler *Handler) http.Handler {
+func NewRouter(handler http.Handler) http.Handler {
 
 	serveMux := http.NewServeMux()
 

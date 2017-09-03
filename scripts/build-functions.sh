@@ -41,14 +41,20 @@ function runTests() {
         for pkg in $(go list ./... | grep -v /vendor/)
         do
           echo "pkg=$pkg"
-          richgo test -v -coverprofile=coverage/coverage.out -covermode=count $pkg
+          go test -v -coverprofile=coverage/coverage.out -covermode=count $pkg
           if [ -f coverage/coverage.out ]; then
             tail -n +2 coverage/coverage.out >> coverage/coverage-all.out
           fi
         done
-        richgo test  -v -tags=integration -coverprofile=coverage/coverage.out -covermode=count
-        tail -n +2 coverage/coverage.out >> coverage/coverage-all.out
-        go tool cover -html=coverage/coverage-all.out -o coverage/coverage.html
+        go test  -v -tags=integration -coverprofile=coverage/coverage.out -covermode=count
+        if [ -f coverage/coverage.out ]; then
+            tail -n +2 coverage/coverage.out >> coverage/coverage-all.out
+        fi
+
+        if [ -f coverage/coverage-all.out ]; then
+            go tool cover -html=coverage/coverage-all.out -o coverage/coverage.html
+        fi
+
     )
 }
 

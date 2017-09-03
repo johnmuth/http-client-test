@@ -37,7 +37,7 @@ func main() {
 	}
 
 	service := &Service{config.ServiceBaseURL, httpClient}
-	handler := &Handler{*service}
+	handler := &HTTPClientTestHandler{*service}
 	err = http.ListenAndServe(fmt.Sprintf(":%d", config.Port), NewRouter(handler))
 
 	if err != nil {
