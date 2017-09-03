@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"github.com/satori/go.uuid"
 )
 
 // Handler handles requests
@@ -13,10 +14,13 @@ type Handler struct {
 
 // ServeHTTP serves HTTP
 func (handler Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	serviceRequest := &ServiceRequest{Foo:"abc", Bar:"def"}
+	u1 := uuid.NewV4()
+	serviceRequest := &ServiceRequest{UUID: u1.String()}
+	log.WithField("uuid", serviceRequest.UUID).Info("About to do service.Call")
 	serviceResponse, err := handler.Service.Call(*serviceRequest)
+	log.WithField("uuid", serviceRequest.UUID).Info("Got response from service.Call")
 	if err != nil {
-		log.Error("Error calling service", err)
+		log.WithField("uuid", serviceRequest.UUID).Error("Error calling service", err)
 		w.WriteHeader(500)
 		return
 	}

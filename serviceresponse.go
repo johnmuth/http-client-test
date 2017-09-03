@@ -6,6 +6,7 @@ import (
 
 type ServiceResponse struct {
 	Qux string `json:"qux"`
+	UUID string `json:"uuid"`
 }
 
 func (sr ServiceResponse) String() string {
