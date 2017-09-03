@@ -5,7 +5,7 @@ import (
 )
 
 type ServiceRequest struct {
-	UUID string `json:"uuid,omitempty"`
+	RequestID string `json:"requestid,omitempty"`
 }
 
 func (req ServiceRequest) String() string {

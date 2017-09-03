@@ -2,17 +2,17 @@ package main
 
 import (
 	"fmt"
+	"github.com/kelseyhightower/envconfig"
+	log "github.com/sirupsen/logrus"
+	"net"
 	"net/http"
 	"os"
 	"time"
-	log "github.com/sirupsen/logrus"
-	"github.com/kelseyhightower/envconfig"
-	"net"
 )
 
 func main() {
 
-	log.SetFormatter(&log.JSONFormatter{TimestampFormat:time.RFC3339Nano})
+	log.SetFormatter(&log.JSONFormatter{TimestampFormat: time.RFC3339Nano})
 
 	config, err := LoadAppConfig()
 	if err != nil {
@@ -32,7 +32,6 @@ func main() {
 			IdleConnTimeout:       time.Duration(config.HTTPClientIdleConnTimeoutMS) * time.Millisecond,
 			TLSHandshakeTimeout:   time.Duration(config.HTTPClientTLSHandshakeTimeoutMS) * time.Millisecond,
 			ExpectContinueTimeout: time.Duration(config.HTTPClientExpectContinueTimeoutMS) * time.Millisecond,
-
 		},
 		Timeout: time.Duration(config.HTTPClientTimeoutMS) * time.Millisecond,
 	}

@@ -2,13 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
 	"errors"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	"net/http"
 	"net/http/httptrace"
+	"strings"
 )
 
 // Service sends requests to a remote HTTP API
@@ -22,18 +21,19 @@ type HttpClient interface {
 }
 
 func (svc Service) Call(serviceRequest ServiceRequest) (serviceResponse ServiceResponse, err error) {
+	serviceResponse.RequestID = serviceRequest.RequestID
 	var resp *http.Response
 	req, err := http.NewRequest("POST", svc.BaseURL, strings.NewReader(serviceRequest.String()))
 	if err != nil {
-		log.WithField("uuid", serviceRequest.UUID).Error("Error creating request to service", err)
+		log.WithField("requestid", serviceRequest.RequestID).Error("Error creating request to service", err)
 		return
 	}
 	req.Header.Set("Content-type", "application/json")
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), clientTrace(serviceRequest)))
-	log.WithField("uuid", serviceRequest.UUID).Info("About to send request to service")
+	log.WithField("requestid", serviceRequest.RequestID).Info("About to send request to service")
 	resp, err = svc.HttpClient.Do(req)
 	if err != nil {
-		log.WithField("uuid", serviceRequest.UUID).Error("Error sending request to service", err)
+		log.WithField("requestid", serviceRequest.RequestID).Error("Error sending request to service", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -43,67 +43,72 @@ func (svc Service) Call(serviceRequest ServiceRequest) (serviceResponse ServiceR
 			respErrorBody, _ := ioutil.ReadAll(resp.Body)
 			respBody = string(respErrorBody)
 		}
-		errorMsg := fmt.Sprintf("Request to service returned status: %d and body: %s ", resp.StatusCode, respBody)
-		log.WithField("uuid", serviceRequest.UUID).Error(errorMsg)
-		return serviceResponse, errors.New(errorMsg)
+		log.WithFields(map[string]interface{}{
+			"statuscode": resp.StatusCode,
+			"body":       respBody,
+			"requestid":  serviceRequest.RequestID,
+		}).Error("Service returned non-200 response")
+		return serviceResponse, errors.New("Service returned non-200 response")
 	}
 	err = json.NewDecoder(resp.Body).Decode(&serviceResponse)
 	if err != nil {
-		log.WithField("uuid", serviceRequest.UUID).Error("Error parsing response from Service.", err)
+		log.WithFields(map[string]interface{}{
+			"err":       err,
+			"requestid": serviceRequest.RequestID,
+		}).Error("Error parsing response from Service.")
 	}
-	serviceResponse.UUID = serviceRequest.UUID
 	return
 }
 
 func clientTrace(serviceRequest ServiceRequest) *httptrace.ClientTrace {
 	return &httptrace.ClientTrace{
 		GetConn: func(hostPort string) {
-			log.WithField("uuid", serviceRequest.UUID).Info("About to get connection")
+			log.WithField("requestid", serviceRequest.RequestID).Info("About to get connection")
 		},
 		PutIdleConn: func(err error) {
 			log.WithFields(map[string]interface{}{
-				"uuid": serviceRequest.UUID,
-				"err": err,
+				"requestid": serviceRequest.RequestID,
+				"err":       err,
 			}).Info("Put idle connection")
 		},
-		Got100Continue : func() {
-			log.WithField("uuid", serviceRequest.UUID).Info("Got 100 Continue")
+		Got100Continue: func() {
+			log.WithField("requestid", serviceRequest.RequestID).Info("Got 100 Continue")
 		},
 		GotConn: func(connInfo httptrace.GotConnInfo) {
 			log.WithFields(map[string]interface{}{
-				"uuid": serviceRequest.UUID,
-				"reused": connInfo.Reused,
-				"idletime": connInfo.IdleTime,
-				"wasidle": connInfo.WasIdle,
+				"requestid": serviceRequest.RequestID,
+				"reused":    connInfo.Reused,
+				"idletime":  connInfo.IdleTime,
+				"wasidle":   connInfo.WasIdle,
 			}).Info("Got connection")
 		},
 		ConnectStart: func(network, addr string) {
-			log.WithField("uuid", serviceRequest.UUID).Info("Dial start")
+			log.WithField("requestid", serviceRequest.RequestID).Info("Dial start")
 		},
 		DNSStart: func(info httptrace.DNSStartInfo) {
-			log.WithField("uuid", serviceRequest.UUID).Info("DNS start", info.Host)
+			log.WithField("requestid", serviceRequest.RequestID).Info("DNS start", info.Host)
 		},
 		DNSDone: func(info httptrace.DNSDoneInfo) {
 			log.WithFields(map[string]interface{}{
-				"uuid": serviceRequest.UUID,
+				"requestid": serviceRequest.RequestID,
 				"coalesced": info.Coalesced,
-				"err": info.Err,
+				"err":       info.Err,
 			}).Info("DNS done")
 		},
 		ConnectDone: func(network, addr string, err error) {
 			log.WithFields(map[string]interface{}{
-				"uuid": serviceRequest.UUID,
-				"err": err,
+				"requestid": serviceRequest.RequestID,
+				"err":       err,
 			}).Info("Dial done")
 		},
 		GotFirstResponseByte: func() {
-			log.WithField("uuid", serviceRequest.UUID).Info("First response byte!")
+			log.WithField("requestid", serviceRequest.RequestID).Info("First response byte!")
 		},
 		WroteHeaders: func() {
-			log.WithField("uuid", serviceRequest.UUID).Info("Wrote headers")
+			log.WithField("requestid", serviceRequest.RequestID).Info("Wrote headers")
 		},
 		WroteRequest: func(wr httptrace.WroteRequestInfo) {
-			log.WithField("uuid", serviceRequest.UUID).Info("Wrote request")
+			log.WithField("requestid", serviceRequest.RequestID).Info("Wrote request")
 		},
 	}
 }

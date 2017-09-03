@@ -5,8 +5,8 @@ import (
 )
 
 type ServiceResponse struct {
-	Qux string `json:"qux"`
-	UUID string `json:"uuid"`
+	Qux  string `json:"qux"`
+	RequestID string `json:"requestid"`
 }
 
 func (sr ServiceResponse) String() string {

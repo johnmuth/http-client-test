@@ -3,6 +3,8 @@
 set -e
 set -u
 
+sudo docker ps -f name=http-client-test -qa | xargs sudo docker rm -f
+
 sudo docker run -d -p '8000:8000' \
     -e 'ENV_NAME=test' \
     -e 'SERVICE_BASE_URL=http://ec2-54-197-30-116.compute-1.amazonaws.com:8001/service' \
