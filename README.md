@@ -35,26 +35,34 @@ When you use those methods you're using a default `http.Client` with default val
 		Transport: &http.Transport{
 			MaxIdleConnsPerHost: 2,
 			DialContext: (&net.Dialer{
-        		Timeout:   30 * time.Second,
-		        KeepAlive: 30 * time.Second,
+        			Timeout:   30 * time.Second,
+		        	KeepAlive: 30 * time.Second,
 			}).DialContext,
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
-
 		},
 		Timeout: 0,
 	}
 ```
 
-All of those options are configurable in this project via environment variables. Look at [docker-compose.yml](docker-compose.yml) to see them all. Read the [net/http package](https://golang.org/pkg/net/http/) source to understand what they all mean.
+Those defaults are okay to get started, but you'll definitely want to override at least some of them to use in production.
+
+For example,
+
+* **Timeout: 0** : AKA no timeout: outgoing request can hang forever
+* **MaxIdleConnsPerHost: 2** : If you're doing a lot of requests to the same host, you probably want to allow more idle connections per host.
+
+To make it easy to experiment, all of the options are configurable in this project via environment variables. Look at [docker-compose.yml](docker-compose.yml) to see them all. Read the [net/http package](https://golang.org/pkg/net/http/) source to understand what they all mean. (I'll also add words here to summarise what I learn.)
 
 ## httptrace
 
 The [httptrace package](https://golang.org/pkg/net/http/httptrace) provides a nice way to add logging and/or metrics to events within HTTP client requests.
 
-Here's an example of tracing the life of a single request, starting with "get connection" and ending with "put idle connection" - returning the connection to the connection pool:
+[service.go](service.go), shows how to add httptrace to an existing http client request/response flow.
+
+The result is a lot of log messages tracing the life of a single request, starting with "get connection" and ending with "put idle connection" - returning the connection to the connection pool:
 
 ```bash
 {"level":"info","msg":"About to get connection","requestid":"0519190b-0bb6-4618-a974-7492776b40d9","time":"2017-09-03T13:13:26.283405633Z"}
