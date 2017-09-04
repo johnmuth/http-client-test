@@ -72,4 +72,11 @@ The result is a lot of log messages tracing the life of a single request, starti
 {"level":"info","msg":"First response byte!","requestid":"0519190b-0bb6-4618-a974-7492776b40d9","time":"2017-09-03T13:13:26.284466249Z"}
 {"err":null,"level":"info","msg":"Put idle connection","requestid":"0519190b-0bb6-4618-a974-7492776b40d9","time":"2017-09-03T13:13:26.285229498Z"}
 ```
+## requestid
+
+To make sense of the detailed log messages when the application is handling lots of requests concurrently, it generates a unique **requestid** in [handler.go](handler.go) and uses it throughout.
+
+
+
+
 
