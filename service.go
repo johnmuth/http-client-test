@@ -56,6 +56,10 @@ func (svc Service) Call(serviceRequest ServiceRequest) (serviceResponse ServiceR
 			"err":       err,
 			"requestid": serviceRequest.RequestID,
 		}).Error("Error parsing response from Service.")
+	} else {
+		log.WithFields(map[string]interface{}{
+			"requestid": serviceRequest.RequestID,
+		}).Info("Done with request")
 	}
 	return
 }

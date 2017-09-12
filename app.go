@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"github.com/viki-org/dnscache"
+	"strings"
 )
 
 func main() {
@@ -21,9 +23,22 @@ func main() {
 
 	log.Info("Listening on", config.Port)
 
+	resolver := dnscache.New(time.Second * 60) //how often to refresh cached dns records, happens in background
+
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConnsPerHost: config.HTTPClientMaxIdleConnsPerHost,
+			// Go does not cache DNS lookups, so we define a custom Dial function that does.
+			// This fixed a problem where requests were timing out during DNS lookup
+			// even though we were hitting the same hostname over and over.
+			Dial: func(network string, address string) (net.Conn, error) {
+				separator := strings.LastIndex(address, ":")
+				ip, err := resolver.FetchOneString(address[:separator])
+				if err != nil {
+					return nil, err
+				}
+				return net.Dial("tcp", ip + address[separator:])
+			},
 			DialContext: (&net.Dialer{
 				Timeout:   time.Duration(config.HTTPClientDialerTimeoutMS) * time.Millisecond,
 				KeepAlive: time.Duration(config.HTTPClientDialerKeepAliveMS) * time.Millisecond,

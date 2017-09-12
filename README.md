@@ -82,6 +82,15 @@ To make sense of the detailed log messages when the application is handling lots
 
 To do the load testing I'm using [locust](http://locust.io), because it looks nice, I like Python, and I'm bored of [Gatling](http://gatling.io) (maybe just bored of apologising for Scala!)
 
+## DNS caching
+
+In my testing I found that some requests were timing out during DNS lookup.
+
+Since the application hits the same URL over and over again it seemed ridiculous to be doing the same DNS lookup repeatedly.
+
+Go does not cache DNS lookups by default - unlike, say, Java.
+
+I introduced [dnscache](https://github.com/viki-org/dnscache) and defined a custom Dial function when instantiating the http client in [app.go](app.go) - that got rid of all timeouts during the DNS lookup phase.
 
 
 

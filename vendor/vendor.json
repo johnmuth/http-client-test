@@ -21,6 +21,12 @@
 			"revisionTime": "2017-08-22T13:27:46Z"
 		},
 		{
+			"checksumSHA1": "QITz/x1CJ8ylMdObGcdiL68xK8k=",
+			"path": "github.com/viki-org/dnscache",
+			"revision": "c70c1f23c5d84ab39054ec6b418a5ed0fa51cade",
+			"revisionTime": "2013-07-20T02:35:26Z"
+		},
+		{
 			"checksumSHA1": "nqWNlnMmVpt628zzvyo6Yv2CX5Q=",
 			"path": "golang.org/x/crypto/ssh/terminal",
 			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
