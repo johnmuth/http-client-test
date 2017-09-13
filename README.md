@@ -84,11 +84,20 @@ To do the load testing I'm using [locust](http://locust.io), because it looks ni
 
 ## DNS caching
 
-In my testing I found that some requests were timing out during DNS lookup.
+In my testing I found that some requests were timing out during DNS lookup:
+
+```bash
+2017-09-12T12:14:03.37758751Z About to get connection
+2017-09-12T12:14:03.377729878Z DNS start
+2017-09-12T12:14:04.877813498Z error: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+2017-09-12T12:14:07.42899834Z DNS done
+2017-09-12T12:14:07.429041271Z Dial start
+2017-09-12T12:14:07.430910866Z Dial done
+```
 
 Since the application hits the same URL over and over again it seemed ridiculous to be doing the same DNS lookup repeatedly.
 
-Go does not cache DNS lookups by default - unlike, say, Java.
+Go does not cache DNS lookups by default - unlike Java (which leads to its own problems).
 
 I introduced [dnscache](https://github.com/viki-org/dnscache) and defined a custom Dial function when instantiating the http client in [app.go](app.go) - that got rid of all timeouts during the DNS lookup phase.
 
