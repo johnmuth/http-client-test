@@ -14,7 +14,7 @@ services:
       - HTTP_CLIENT_IDLE_CONN_TIMEOUT_MS=90000
       - HTTP_CLIENT_TLS_HANDSHAKE_TIMEOUT_MS=1000
       - HTTP_CLIENT_EXPECT_CONTINUE_TIMEOUT_MS=1000
-      - HTTP_CLIENT_TIMEOUT_MS=1500
+      - HTTP_CLIENT_TIMEOUT_MS=500
 
     links:
       - fake-service
@@ -25,6 +25,6 @@ services:
     image: quii/mockingjay-server:1.10.4
     volumes:
       - ./fakes:/fakes
-    command: -config=/fakes/fake-service.yml
+    command: -config=/fakes/fake-service.yml -monkeyConfig=/fakes/monkey.yml
     ports:
      - "9090:9090"

@@ -18,10 +18,10 @@ func main() {
 
 	config, err := LoadAppConfig()
 	if err != nil {
-		log.Error("Error loading config", err.Error())
+		log.WithField("error", err.Error()).Error("Error loading config")
 	}
 
-	log.Info("Listening on", config.Port)
+	log.WithField("port", config.Port).Info("Listening")
 
 	resolver := dnscache.New(time.Second * 60) //how often to refresh cached dns records, happens in background
 
@@ -56,7 +56,7 @@ func main() {
 	err = http.ListenAndServe(fmt.Sprintf(":%d", config.Port), NewRouter(handler))
 
 	if err != nil {
-		log.Error("Problem starting server", err.Error())
+		log.WithField("error", err.Error()).Error("Problem starting server")
 		os.Exit(1)
 	}
 }

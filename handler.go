@@ -16,9 +16,9 @@ type HTTPClientTestHandler struct {
 func (handler HTTPClientTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	u1 := uuid.NewV4()
 	serviceRequest := &ServiceRequest{RequestID: u1.String()}
-	log.WithField("requestid", serviceRequest.RequestID).Info("About to do service.Call")
+	log.WithField("requestid", serviceRequest.RequestID).Debug("About to do service.Call")
 	serviceResponse, err := handler.Service.Call(*serviceRequest)
-	log.WithField("requestid", serviceRequest.RequestID).Info("Got response from service.Call")
+	log.WithField("requestid", serviceRequest.RequestID).Debug("Got response from service.Call")
 	if err != nil {
 		log.WithField("requestid", serviceRequest.RequestID).Error("Error calling service", err)
 		w.WriteHeader(500)

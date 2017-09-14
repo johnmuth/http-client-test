@@ -21,11 +21,6 @@ type HttpClient interface {
 	Do(r *http.Request) (*http.Response, error)
 }
 
-type requestTiming struct {
-	time time.Time
-	phase string
-}
-
 func (svc Service) Call(serviceRequest ServiceRequest) (serviceResponse ServiceResponse, err error) {
 	serviceResponse.RequestID = serviceRequest.RequestID
 	var resp *http.Response
@@ -35,12 +30,16 @@ func (svc Service) Call(serviceRequest ServiceRequest) (serviceResponse ServiceR
 		return
 	}
 	req.Header.Set("Content-type", "application/json")
-	requestTimings := []requestTiming{}
+	requestTimings := make(map[string]time.Time)
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), clientTrace(serviceRequest, requestTimings)))
-	log.WithField("requestid", serviceRequest.RequestID).Info("About to send request to service")
+	log.WithField("requestid", serviceRequest.RequestID).Debug("About to send request to service")
 	resp, err = svc.HttpClient.Do(req)
 	if err != nil {
-		log.WithField("requestid", serviceRequest.RequestID).Error("Error sending request to service", err)
+		log.WithFields(map[string]interface{}{
+			"requestTimings":  requestTimings,
+			"requestid":  serviceRequest.RequestID,
+			"error": err,
+		}).Error("Error sending request to service")
 		return
 	}
 	defer resp.Body.Close()
@@ -66,71 +65,71 @@ func (svc Service) Call(serviceRequest ServiceRequest) (serviceResponse ServiceR
 	} else {
 		log.WithFields(map[string]interface{}{
 			"requestid": serviceRequest.RequestID,
-		}).Info("Done with request")
+		}).Debug("Done with request")
 	}
 	return
 }
 
-func clientTrace(serviceRequest ServiceRequest, requestTimings []requestTiming) *httptrace.ClientTrace {
+func clientTrace(serviceRequest ServiceRequest, requestTimings map[string]time.Time) *httptrace.ClientTrace {
 	return &httptrace.ClientTrace{
 		GetConn: func(hostPort string) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"GetConn"})
-			log.WithField("requestid", serviceRequest.RequestID).Info("About to get connection")
+			requestTimings["getconn"] = time.Now()
+			log.WithField("requestid", serviceRequest.RequestID).Debug("About to get connection")
 		},
 		GotConn: func(connInfo httptrace.GotConnInfo) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"GotConn"})
+			requestTimings["gotconn"] = time.Now()
 			log.WithFields(map[string]interface{}{
 				"requestid": serviceRequest.RequestID,
 				"reused":    connInfo.Reused,
 				"idletime":  connInfo.IdleTime,
 				"wasidle":   connInfo.WasIdle,
-			}).Info("Got connection")
+			}).Debug("Got connection")
 		},
 		PutIdleConn: func(err error) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"PutIdleConn"})
+			requestTimings["putidleconn"] = time.Now()
 			log.WithFields(map[string]interface{}{
 				"requestid": serviceRequest.RequestID,
 				"err":       err,
-			}).Info("Put idle connection")
+			}).Debug("Put idle connection")
 		},
 		Got100Continue: func() {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"Got100Continue"})
-			log.WithField("requestid", serviceRequest.RequestID).Info("Got 100 Continue")
+			requestTimings["got100continue"] = time.Now()
+			log.WithField("requestid", serviceRequest.RequestID).Debug("Got 100 Continue")
 		},
 		ConnectStart: func(network, addr string) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"ConnectStart"})
-			log.WithField("requestid", serviceRequest.RequestID).Info("Dial start")
+			requestTimings["connectstart"] = time.Now()
+			log.WithField("requestid", serviceRequest.RequestID).Debug("Dial start")
 		},
 		DNSStart: func(info httptrace.DNSStartInfo) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"DNSStart"})
-			log.WithField("requestid", serviceRequest.RequestID).Info("DNS start", info.Host)
+			requestTimings["dnsstart"] = time.Now()
+			log.WithField("requestid", serviceRequest.RequestID).Debug("DNS start", info.Host)
 		},
 		DNSDone: func(info httptrace.DNSDoneInfo) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"DNSDone"})
+			requestTimings["dnsdone"] = time.Now()
 			log.WithFields(map[string]interface{}{
 				"requestid": serviceRequest.RequestID,
 				"coalesced": info.Coalesced,
 				"err":       info.Err,
-			}).Info("DNS done")
+			}).Debug("DNS done")
 		},
 		ConnectDone: func(network, addr string, err error) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"ConnectDone"})
+			requestTimings["connectdone"] = time.Now()
 			log.WithFields(map[string]interface{}{
 				"requestid": serviceRequest.RequestID,
 				"err":       err,
-			}).Info("Dial done")
+			}).Debug("Dial done")
 		},
 		GotFirstResponseByte: func() {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"GotFirstResponseByte"})
-			log.WithField("requestid", serviceRequest.RequestID).Info("First response byte!")
+			requestTimings["gotfirstresponsebyte"] = time.Now()
+			log.WithField("requestid", serviceRequest.RequestID).Debug("First response byte!")
 		},
 		WroteHeaders: func() {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"WroteHeaders"})
-			log.WithField("requestid", serviceRequest.RequestID).Info("Wrote headers")
+			requestTimings["wroteheaders"] = time.Now()
+			log.WithField("requestid", serviceRequest.RequestID).Debug("Wrote headers")
 		},
 		WroteRequest: func(wr httptrace.WroteRequestInfo) {
-			requestTimings = append(requestTimings, requestTiming{time.Now(),"WroteRequest"})
-			log.WithField("requestid", serviceRequest.RequestID).Info("Wrote request")
+			requestTimings["wroterequest"] = time.Now()
+			log.WithField("requestid", serviceRequest.RequestID).Debug("Wrote request")
 		},
 	}
 }
