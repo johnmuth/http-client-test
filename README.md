@@ -13,7 +13,7 @@ The other service is [fake-service](https://github.com/johnmuth/fake-service), w
         - requestid is a unique id to help correlate events in the logs
         - qux is from the response from fake-service. 
         
-- /internal/healtcheck
+- /internal/healthcheck
     - for load balancer
     
 ## net/http Client
